@@ -17,7 +17,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="?attr/backgroundColor" />
+        app:srcCompat="@color/translucent_background" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/title"

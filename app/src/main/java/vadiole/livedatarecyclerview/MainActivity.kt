@@ -3,9 +3,11 @@ package vadiole.livedatarecyclerview
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import vadiole.livedatarecyclerview.model.list.ItemTouchHelperCallback
@@ -13,19 +15,21 @@ import vadiole.livedatarecyclerview.model.list.ItemTouchHelperCallback
 
 class MainActivity : AppCompatActivity(), OnItemClickListener {
 
-    val viewModel: ViewModel by viewModels()
+    private val viewModel: ViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val adapter = Adapter(this@MainActivity, this@MainActivity)
+        val adapter = Adapter(this, this)
+        val layoutManager = GridLayoutManager(this, 2, RecyclerView.VERTICAL, false )
         val recycler = findViewById<RecyclerView>(R.id.recycler_view)
 
         val callback = ItemTouchHelperCallback(adapter)
         ItemTouchHelper(callback).attachToRecyclerView(recycler)
 
         recycler.adapter = adapter
+        recycler.layoutManager = layoutManager
         recycler.setHasFixedSize(true)
 
 

@@ -20,7 +20,7 @@ import kotlin.random.Random
 
 class ViewModel(application: Application) : AndroidViewModel(application) {
     val list: LiveData<List<Equatable>> = getList().asLiveData()
-    var mutableList = mutableListOf<Equatable>(Item2(1))
+    var mutableList = mutableListOf<Equatable>(Item1(1, "ss", "s"))
     private fun getList() = flow {
         for (i in 0..12) {
             val item = Item1(i, "Item $i", "time")
@@ -28,7 +28,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
             mutableList.add(newPosition, item)
             emit(mutableList)
             Log.i("ViewModel", "getList: emit")
-            delay(100)
+            delay(0)
         }
     }
 
