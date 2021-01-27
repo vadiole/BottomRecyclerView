@@ -2,31 +2,49 @@ package vadiole.livedatarecyclerview
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.lifecycle.LifecycleOwner
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import vadiole.livedatarecyclerview.model.Equatable
 import vadiole.livedatarecyclerview.model.Item1
 import vadiole.livedatarecyclerview.model.Item2
+import vadiole.livedatarecyclerview.model.list.ItemHolder1
+import vadiole.livedatarecyclerview.model.list.ItemHolder2
+import vadiole.livedatarecyclerview.model.list.ItemTouchHelperAdapter
+import java.util.*
+
 
 class Adapter(
-    private val list: List<Any>, private val lifecycleOwner: LifecycleOwner,
-    private val listener: ItemClickListener
-) :
-    RecyclerView.Adapter<ViewHolder>() {
+    private val lifecycleOwner: LifecycleOwner,
+    private val listener: OnItemClickListener,
+) : RecyclerView.Adapter<ViewHolder>(), ItemTouchHelperAdapter {
 
+    private val differCallback = object : DiffUtil.ItemCallback<Equatable>() {
+        override fun areItemsTheSame(old: Equatable, new: Equatable) = when {
+            old is Item1 && new is Item1 -> old.id == new.id
+            old is Item2 && new is Item2 -> true
+            else -> false
+        }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        return when (viewType) {
-            TYPE_1 -> ItemHolder1(inflater, parent)
-            TYPE_2 -> ItemHolder2(inflater, parent)
-            else -> throw NotImplementedError()
+        override fun areContentsTheSame(old: Equatable, new: Equatable) = when {
+            old is Item1 && new is Item1 -> old == new
+            old is Item2 && new is Item2 -> old == new
+            else -> false
         }
     }
 
+    private val differ: AsyncListDiffer<Equatable> = AsyncListDiffer(this, differCallback)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = when (viewType) {
+        TYPE_1 -> ItemHolder1(LayoutInflater.from(parent.context), parent)
+        TYPE_2 -> ItemHolder2(LayoutInflater.from(parent.context), parent)
+        else -> throw NotImplementedError()
+    }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = list[position]
+        val item = getItem(position)
         when (holder.itemViewType) {
             TYPE_1 -> (holder as ItemHolder1).bind(item as Item1, lifecycleOwner, listener)
             TYPE_2 -> (holder as ItemHolder2).bind(listener)
@@ -34,54 +52,17 @@ class Adapter(
         }
     }
 
-    override fun getItemCount() = list.size
+    override fun getItemCount() = differ.currentList.size
 
-    override fun getItemViewType(position: Int) = when (list[position]) {
-        is Item1 -> 1
-        is Item2 -> 2
+    override fun getItemViewType(position: Int) = when {
+        getItem(position) is Item1 -> 1
+        getItem(position) is Item2 -> 2
         else -> throw NotImplementedError()
     }
 
+    private fun getItem(position: Int) = differ.currentList[position]
 
-    class ItemHolder1(inflater: LayoutInflater, parent: ViewGroup) :
-
-        ViewHolder(
-            inflater.inflate(
-                R.layout.item1,
-                parent,
-                false
-            )
-        ) {
-
-        private var titleView: TextView
-        private var timeView: TextView
-
-        init {
-            with(itemView) {
-                titleView = findViewById(R.id.title)
-                timeView = findViewById(R.id.time)
-            }
-        }
-
-        fun bind(item: Item1, lifecycleOwner: LifecycleOwner, listener: ItemClickListener) {
-            itemView.setOnClickListener { listener.onItemClick(it, bindingAdapterPosition) }
-            with(item) {
-                titleView.text = title
-                time.observe(lifecycleOwner) { time ->
-                    timeView.text = time
-                }
-            }
-        }
-    }
-
-
-    class ItemHolder2(inflater: LayoutInflater, parent: ViewGroup) :
-        ViewHolder(inflater.inflate(R.layout.item2, parent, false)) {
-
-        fun bind(listener: ItemClickListener) {
-            itemView.setOnClickListener { listener.onItemClick(it, bindingAdapterPosition) }
-        }
-    }
+    fun submitList(list: List<Equatable>) = differ.submitList(list.toList())
 
 
     companion object {
@@ -89,4 +70,21 @@ class Adapter(
         const val TYPE_2 = 2
     }
 
+    override fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {
+        val mItems = differ.currentList.toMutableList()
+
+        if (fromPosition < toPosition) {
+            for (i in fromPosition until toPosition) {
+                Collections.swap(mItems, i, i + 1)
+            }
+        } else {
+            for (i in fromPosition downTo toPosition + 1) {
+                Collections.swap(mItems, i, i - 1)
+            }
+        }
+        submitList(mItems)
+        return true
+    }
+
+    override fun onItemDismiss(position: Int) = Unit
 }

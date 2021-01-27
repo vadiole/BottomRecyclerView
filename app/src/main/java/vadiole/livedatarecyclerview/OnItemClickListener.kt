@@ -2,6 +2,6 @@ package vadiole.livedatarecyclerview
 
 import android.view.View
 
-interface ItemClickListener {
+interface OnItemClickListener {
     fun onItemClick(view: View, position: Int)
 }

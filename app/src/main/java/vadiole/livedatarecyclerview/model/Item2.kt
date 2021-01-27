@@ -1,4 +1,5 @@
 package vadiole.livedatarecyclerview.model
 
-class Item2 {
+data class Item2(val id: Int) : Equatable {
+
 }
