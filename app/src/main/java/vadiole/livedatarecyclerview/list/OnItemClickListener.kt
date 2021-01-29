@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview
+package vadiole.livedatarecyclerview.list
 
 import android.view.View
 

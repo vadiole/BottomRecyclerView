@@ -1,6 +1,4 @@
-package vadiole.livedatarecyclerview.model
-
-import androidx.lifecycle.LiveData
+package vadiole.livedatarecyclerview.list
 
 data class Item1(val id: Int, val title: String, var time: String) : Equatable {
 }

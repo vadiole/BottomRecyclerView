@@ -1,6 +1,4 @@
-package vadiole.livedatarecyclerview.model.list
-
-import java.text.FieldPosition
+package vadiole.livedatarecyclerview.list
 
 interface ItemTouchHelperAdapter {
     fun onItemMove(fromPosition: Int, toPosition: Int): Boolean

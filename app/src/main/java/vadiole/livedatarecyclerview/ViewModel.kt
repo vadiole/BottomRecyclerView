@@ -1,21 +1,14 @@
 package vadiole.livedatarecyclerview
 
 import android.app.Application
-import android.content.ClipData
 import android.util.Log
-import androidx.core.util.rangeTo
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import vadiole.livedatarecyclerview.model.Equatable
-import vadiole.livedatarecyclerview.model.Item1
-import vadiole.livedatarecyclerview.model.Item2
+import vadiole.livedatarecyclerview.list.Equatable
+import vadiole.livedatarecyclerview.list.Item1
 import kotlin.random.Random
 
 class ViewModel(application: Application) : AndroidViewModel(application) {
