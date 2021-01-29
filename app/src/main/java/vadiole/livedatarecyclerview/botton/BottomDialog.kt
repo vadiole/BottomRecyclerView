@@ -1,20 +1,22 @@
 package vadiole.livedatarecyclerview.botton
 
-import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import vadiole.livedatarecyclerview.R
+import vadiole.livedatarecyclerview.list.Adapter
 
-class BottomDialog : BottomSheetDialogFragment() {
+class BottomDialog : Fragment() {
 
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return super.onCreateDialog(savedInstanceState)
-
-    }
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: Adapter
+    private lateinit var dialog: BottomSheetDialog
+    private lateinit var behavior: BottomSheetBehavior<View>
 
     override fun onCreateView(
         inflater: LayoutInflater,
