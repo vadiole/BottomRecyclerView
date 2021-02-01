@@ -15,8 +15,6 @@ class BottomDialog : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: Adapter
-    private lateinit var dialog: BottomSheetDialog
-    private lateinit var behavior: BottomSheetBehavior<View>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,6 +25,12 @@ class BottomDialog : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        view.translationY = view.height.toFloat()
+    }
 
+    fun animateBySwipe(dY: Float) {
+        view?.apply {
+            translationY = height - dY
+        }
     }
 }
