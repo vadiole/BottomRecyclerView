@@ -1,7 +1,8 @@
 package vadiole.livedatarecyclerview
 
+import android.graphics.Point
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.ViewConfiguration
 import android.widget.TextView
@@ -19,69 +20,114 @@ import vadiole.livedatarecyclerview.list.OnItemClickListener
 class MainActivity : AppCompatActivity(), OnItemClickListener {
 
     private val viewModel: ViewModel by viewModels()
-    private val touchSlop by lazy { ViewConfiguration.get(this).scaledTouchSlop}
+    private val viewConfig by lazy { ViewConfiguration.get(this) }
 
     private var bottomDialog: BottomDialog? = null
+    private val onSwipeListener = object : SwipeableLayout.OnSwipeListener {
+        override fun onSwipe(event: SwipeableLayout.SwipeEvent): Boolean {
+            when (event.direction) {
+                SwipeableLayout.SwipeEvent.UP -> {
+                    when (event.action) {
+                        ACTION_START -> {
+                            return if (bottomDialog?.isAdded == true) {
+                                bottomDialog?.extendBy(event.movedBy) == true
+                            } else {
+                                bottomDialog = BottomDialog().apply {
+                                    supportFragmentManager.beginTransaction()
+                                        .add(R.id.fragment_container, this)
+                                        .commit()
+                                }
+                                true
+                            }
+                        }
+                        ACTION_MOVE -> {
+                            return bottomDialog?.extendBy(event.movedBy) == true
+                        }
+                        ACTION_END -> {
+                            val showByPosition = event.movedBy > (screenHeight() * 0.5)
+                            val showByVelocity =
+                                (event.velocity!!) < -1 * viewConfig.scaledMinimumFlingVelocity
+                            val hideByPosition = event.movedBy <= (screenHeight() * 0.5)
+                            val hideByVelocity =
+                                (event.velocity) > 1 * viewConfig.scaledMinimumFlingVelocity
+
+                            when {
+                                showByVelocity -> {
+                                    bottomDialog?.extend(event.velocity)
+                                }
+                                hideByVelocity -> {
+                                    bottomDialog?.collapse(event.velocity)
+                                }
+                                showByPosition -> {
+                                    bottomDialog?.extend(event.velocity)
+                                }
+                                hideByPosition -> {
+                                    bottomDialog?.collapse(event.velocity)
+                                }
+                            }
+                            return true
+                        }
+                    }
+                }
+                SwipeableLayout.SwipeEvent.DOWN -> {
+                    when (event.action) {
+                        ACTION_START -> {
+                            if (bottomDialog?.isAdded == false) return false
+                            return bottomDialog?.collapseBy(event.movedBy) == true
+                        }
+                        ACTION_MOVE -> {
+                            return bottomDialog?.collapseBy(event.movedBy) == true
+                        }
+                        ACTION_END -> {
+                            val showByPosition = event.movedBy > (screenHeight() * 0.5)
+                            val showByVelocity =
+                                (event.velocity!!) < -1 * viewConfig.scaledMinimumFlingVelocity
+                            val hideByPosition = event.movedBy <= (screenHeight() * 0.5)
+                            val hideByVelocity =
+                                (event.velocity) > 1 * viewConfig.scaledMinimumFlingVelocity
+
+                            when {
+                                showByVelocity -> {
+                                    bottomDialog?.extend(event.velocity)
+                                }
+                                hideByVelocity -> {
+                                    bottomDialog?.collapse(event.velocity)
+                                }
+                                showByPosition -> {
+                                    bottomDialog?.extend(event.velocity)
+                                }
+                                hideByPosition -> {
+                                    bottomDialog?.collapse(event.velocity)
+                                }
+                            }
+                            return true
+                        }
+                    }
+                }
+            }
+            return false
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         findViewById<TextView>(R.id.toolbar).setOnClickListener {
-            Toast.makeText(this, "click", Toast.LENGTH_SHORT).show()
-            BottomDialog()
-            supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.fragment_container, BottomDialog())
-                .commit()
+//            Toast.makeText(this, "click", Toast.LENGTH_SHORT).show()
+//            BottomDialog()
+//            supportFragmentManager
+//                .beginTransaction()
+//                .replace(R.id.fragment_container, BottomDialog())
+//                .commit()
         }
 
 
         findViewById<SwipeableLayout>(R.id.root).apply {
-            onSwipeListener = object : SwipeableLayout.OnSwipeListener {
-                override fun onSwipe(event: SwipeableLayout.SwipeEvent): Boolean {
-                    Log.i("Main", "onSwipe: $event")
-                    if (event.direction != SwipeableLayout.SwipeEvent.UP) return false
+            onSwipeListener = this@MainActivity.onSwipeListener
 
-                    when (event.action) {
-                        ACTION_START -> {
-                            bottomDialog = BottomDialog().apply {
-                                supportFragmentManager.beginTransaction()
-                                    .add(R.id.fragment_container, this)
-                                    .commit()
-                            }
-                        }
-                        ACTION_MOVE -> {
-                            bottomDialog?.animateBySwipe(event.movedBy)
-                        }
-                        ACTION_END -> {
-                            bottomDialog?.let {
-                                supportFragmentManager.beginTransaction().remove(it)
-                            }
-                        }
-                    }
-                    return true
-                }
-            }
         }
-//
-//        val adapter = Adapter(this, this)
-//        val layoutManager = GridLayoutManager(this, 2, RecyclerView.VERTICAL, false )
-//        val recycler = findViewById<RecyclerView>(R.id.recycler_view)
-//
-//        val callback = ItemTouchHelperCallback(adapter)
-//        ItemTouchHelper(callback).attachToRecyclerView(recycler)
-//
-//        recycler.adapter = adapter
-//        recycler.layoutManager = layoutManager
-//        recycler.setHasFixedSize(true)
-//
-//
-//
-//        viewModel.list.observe(this) {
-//            Log.i("Main", "update list")
-//            adapter.submitList(it)
-//        }
+
     }
 
     override fun onItemClick(view: View, position: Int) {
@@ -94,4 +140,13 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
     var isDragging = false
 
 
+    fun screenHeight() = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+        windowManager?.run {
+            currentWindowMetrics.bounds.height()
+        } ?: 0
+    } else {
+        val size = Point()
+        windowManager.defaultDisplay.getSize(size)
+        size.y
+    }
 }

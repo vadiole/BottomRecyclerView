@@ -3,6 +3,7 @@ package vadiole
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.ViewConfiguration
@@ -34,7 +35,7 @@ class SwipeableLayout @JvmOverloads constructor(
     private var velocityTracker: VelocityTracker? = null
 
     private var currentAction = ACTION_NONE
-    private var direction = -1
+    private var currentDirection = -1
     private var isSwiping = false
     private var startX = -1f
     private var startY = -1f
@@ -42,8 +43,12 @@ class SwipeableLayout @JvmOverloads constructor(
 
     @SuppressLint("Recycle")
     override fun onInterceptTouchEvent(event: MotionEvent?): Boolean {
+        Log.d("Swipe", "onInterceptTouchEvent")
+
+
         when (event?.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+
                 currentAction = ACTION_NONE
 
                 startX = event.rawX
@@ -64,13 +69,13 @@ class SwipeableLayout @JvmOverloads constructor(
                     val dX = startX - x
                     val dY = startY - y
 
-
                     if (abs(dX) > abs(dY)) {
                         if (abs(dX) > touchSlop) {
                             val direction = if (dX > 0) LEFT else RIGHT
                             val swipeEvent = SwipeEvent(ACTION_START, direction, abs(dX), null)
                             return if (onSwipeListener?.onSwipe(swipeEvent) == true) {
                                 currentAction = ACTION_MOVE
+                                currentDirection = direction
                                 true
                             } else false
                         }
@@ -80,6 +85,7 @@ class SwipeableLayout @JvmOverloads constructor(
                             val swipeEvent = SwipeEvent(ACTION_START, direction, abs(dY), null)
                             return if (onSwipeListener?.onSwipe(swipeEvent) == true) {
                                 currentAction = ACTION_MOVE
+                                currentDirection = direction
                                 true
                             } else false
                         }
@@ -99,7 +105,12 @@ class SwipeableLayout @JvmOverloads constructor(
         if (currentAction != ACTION_MOVE) return super.onTouchEvent(event)
         if (onSwipeListener == null) return super.onTouchEvent(event)
 
-        val movedBy = when (direction) {
+
+        Log.d(
+            "Swipe",
+            "onTouchEvent, swipe action = $currentAction, direction = ${currentDirection}, touch action = ${event.actionMasked}"
+        )
+        val movedBy = when (currentDirection) {
             UP -> startY - event.rawY
             DOWN -> event.rawY - startY
             LEFT -> startX - event.rawX
@@ -109,14 +120,15 @@ class SwipeableLayout @JvmOverloads constructor(
 
         when (event.actionMasked) {
             MotionEvent.ACTION_MOVE -> {
+                Log.d("Swipe", "onTouchEvent: ACTION_MOVE")
                 velocityTracker?.addMovement(event)
 
                 val swipeEvent = if (movedBy < 0f) {
-                    currentAction = ACTION_END
-                    SwipeEvent(ACTION_END, direction, 0f, null)
+                    SwipeEvent(ACTION_MOVE, currentDirection, 0f, null)
                 } else {
-                    SwipeEvent(ACTION_MOVE, direction, movedBy, null)
+                    SwipeEvent(ACTION_MOVE, currentDirection, movedBy, null)
                 }
+                Log.d("Swipe", "send move action")
                 onSwipeListener?.onSwipe(swipeEvent)
 
                 return true
@@ -124,13 +136,15 @@ class SwipeableLayout @JvmOverloads constructor(
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 val pointerId: Int = event.getPointerId(event.actionIndex)
-                val velocity = if (direction == UP || direction == DOWN) {
-                    velocityTracker?.getYVelocity(pointerId) ?: 0f
+                val velocity = if (currentDirection == UP || currentDirection == DOWN) {
+                    velocityTracker?.computeCurrentVelocity(1000)
+                    velocityTracker!!.getYVelocity(pointerId)
                 } else {
-                    velocityTracker?.getXVelocity(pointerId) ?: 0f
+                    velocityTracker?.computeCurrentVelocity(1000)
+                    velocityTracker!!.getXVelocity(pointerId)
                 }
 
-                val swipeEvent = SwipeEvent(ACTION_MOVE, direction, movedBy, velocity)
+                val swipeEvent = SwipeEvent(ACTION_END, currentDirection, movedBy, velocity)
                 onSwipeListener?.onSwipe(swipeEvent)
 
                 currentAction = ACTION_NONE

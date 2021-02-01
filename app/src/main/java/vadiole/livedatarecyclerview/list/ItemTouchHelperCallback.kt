@@ -4,7 +4,9 @@ import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import vadiole.livedatarecyclerview.list.Adapter.Companion.TYPE_1
+import vadiole.livedatarecyclerview.list.Adapter.Companion.TYPE_2
 import kotlin.math.abs
+import kotlin.math.sign
 
 class ItemTouchHelperCallback(private val adapter: ItemTouchHelperAdapter) : Callback() {
     override fun isLongPressDragEnabled() = true
@@ -35,16 +37,16 @@ class ItemTouchHelperCallback(private val adapter: ItemTouchHelperAdapter) : Cal
         }
     }
 
-//    override fun interpolateOutOfBoundsScroll(
-//        recyclerView: RecyclerView,
-//        viewSize: Int,
-//        viewSizeOutOfBounds: Int,
-//        totalSize: Int,
-//        msSinceStartScroll: Long
-//    ): Int {
-//        val direction = sign(viewSizeOutOfBounds.toDouble()).toInt()
-//        return 10 * direction
-//    }
+    override fun interpolateOutOfBoundsScroll(
+        recyclerView: RecyclerView,
+        viewSize: Int,
+        viewSizeOutOfBounds: Int,
+        totalSize: Int,
+        msSinceStartScroll: Long
+    ): Int {
+        val direction = sign(viewSizeOutOfBounds.toDouble()).toInt()
+        return 10 * direction
+    }
 
 
     //      0.5 >= x >= 1 (if less than 0.5, it will shake due to constant overlap)
@@ -109,6 +111,15 @@ class ItemTouchHelperCallback(private val adapter: ItemTouchHelperAdapter) : Cal
             }
         }
         return winner
+    }
+
+    override fun canDropOver(
+        recyclerView: RecyclerView,
+        current: ViewHolder,
+        target: ViewHolder
+    ): Boolean {
+        if (target.itemViewType == TYPE_2) return false
+        return true
     }
 
     override fun clearView(recyclerView: RecyclerView, viewHolder: ViewHolder) {
