@@ -1,5 +1,6 @@
 package vadiole.bottomrecyclerview.botton
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -20,14 +21,12 @@ import vadiole.bottomrecyclerview.list.ItemTouchHelperCallback
 import vadiole.bottomrecyclerview.list.OnItemClickListener
 import kotlin.math.abs
 
-class BottomDialog : Fragment(), BottomBehavior, OnItemClickListener {
+class BottomFragment : Fragment(), BottomBehavior, OnItemClickListener {
 
-    private val viewModel: ViewModel by viewModels()
+    private val viewModel: ViewModel by activityViewModels()
     private var recycler: RecyclerView? = null
     private var mAdapter: Adapter? = null
 
-    private var isAnimating = false
-    private var isExtended = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,7 +45,10 @@ class BottomDialog : Fragment(), BottomBehavior, OnItemClickListener {
 
             val mLayoutManager =
                 GridLayoutManager(requireContext(), 2, RecyclerView.VERTICAL, false)
-            mAdapter = Adapter(this, this)
+            mAdapter = Adapter(this, this).apply {
+                stateRestorationPolicy =
+                    RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+            }
             recycler = it.findViewById(R.id.recycler_view)
 
             val callback = ItemTouchHelperCallback(mAdapter!!)
@@ -61,48 +63,55 @@ class BottomDialog : Fragment(), BottomBehavior, OnItemClickListener {
 
             viewModel.list.observe(viewLifecycleOwner) { list ->
                 Log.i("Main", "update list")
+                if (mAdapter?.itemCount == 0) {
+                    recycler?.scheduleLayoutAnimation()
+                }
                 mAdapter?.submitList(list)
-                recycler?.scheduleLayoutAnimation()
             }
         }
     }
 
 
     override fun extendBy(dY: Float): Boolean {
-        if (isAnimating) return false
-        if (isExtended) return false
-        if (recycler?.canScrollVertically(-1) == true) return false
+        if (!isAdded) return true
+        if (viewModel.isAnimating) return false
+        if (viewModel.isExtended) return false
+        if (viewModel.isExtended && recycler?.canScrollVertically(-1) == true) return false
         view?.apply {
             translationY = height - dY
+            return true
         }
-        return true
+        return false
     }
 
     override fun collapseBy(dY: Float): Boolean {
-        if (isAnimating) return false
-        if (!isExtended) return false
-        if (recycler?.canScrollVertically(-1) == true) return false
+        if (!isAdded) return true
+        if (viewModel.isAnimating) return false
+        if (!viewModel.isExtended) return false
+        if (viewModel.isExtended && recycler?.canScrollVertically(-1) == true) return false
 
 
         view?.apply {
             translationY = dY
+            return true
         }
-        return true
+        return false
     }
 
     override fun extend(velocity: Float): Boolean {
-        if (isAnimating) return false
+        if (!isAdded) return true
+        if (viewModel.isAnimating) return false
 
         view?.apply {
             val duration = 200 + 10000 / (abs(velocity) + 300).toDp
             Log.d("SWIPE", "extend duration: $duration, velocity: $velocity")
 
-            isAnimating = true
+            viewModel.isAnimating = true
             animate()
                 .setDuration(duration.toLong())
                 .translationY(0f)
                 .setInterpolator(LinearOutSlowInInterpolator())
-                .onEnd { isAnimating = false; isExtended = true }
+                .onEnd { viewModel.isAnimating = false; viewModel.isExtended = true }
                 .start()
             return true
         }
@@ -112,7 +121,8 @@ class BottomDialog : Fragment(), BottomBehavior, OnItemClickListener {
     }
 
     override fun collapse(velocity: Float, onEnd: () -> Unit): Boolean {
-        if (isAnimating) return false
+        if (!isAdded) return true
+        if (viewModel.isAnimating) return false
 
         view?.apply {
             val duration = 200 + 10000 / (abs(velocity) + 300).toDp
@@ -121,7 +131,9 @@ class BottomDialog : Fragment(), BottomBehavior, OnItemClickListener {
                 .setDuration(duration.toLong())
                 .translationY(height.toFloat())
                 .setInterpolator(LinearOutSlowInInterpolator())
-                .onEnd { isAnimating = false; isExtended = false; onEnd.invoke() }
+                .onEnd {
+                    viewModel.isAnimating = false; viewModel.isExtended = false; onEnd.invoke()
+                }
                 .start()
             return true
         }
@@ -132,5 +144,17 @@ class BottomDialog : Fragment(), BottomBehavior, OnItemClickListener {
         Toast.makeText(requireContext(), "item $position click", Toast.LENGTH_SHORT).show()
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        Log.i(TAG, "onAttach")
+    }
 
+    override fun onDetach() {
+        super.onDetach()
+        Log.i(TAG, "onDetach")
+    }
+
+    companion object {
+        const val TAG = "BottomDialog"
+    }
 }

@@ -13,7 +13,7 @@ import vadiole.SwipeableLayout
 import vadiole.SwipeableLayout.SwipeEvent.Companion.ACTION_END
 import vadiole.SwipeableLayout.SwipeEvent.Companion.ACTION_MOVE
 import vadiole.SwipeableLayout.SwipeEvent.Companion.ACTION_START
-import vadiole.bottomrecyclerview.botton.BottomDialog
+import vadiole.bottomrecyclerview.botton.BottomFragment
 import vadiole.bottomrecyclerview.list.OnItemClickListener
 
 
@@ -22,26 +22,28 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
     private val viewModel: ViewModel by viewModels()
     private val viewConfig by lazy { ViewConfiguration.get(this) }
 
-    private var bottomDialog: BottomDialog? = null
+    private var bottomFragment: BottomFragment? = null
     private val onSwipeListener = object : SwipeableLayout.OnSwipeListener {
         override fun onSwipe(event: SwipeableLayout.SwipeEvent): Boolean {
             when (event.direction) {
                 SwipeableLayout.SwipeEvent.UP -> {
                     when (event.action) {
-                        ACTION_START -> {
-                            return if (bottomDialog?.isAdded == true) {
-                                bottomDialog?.extendBy(event.movedBy) == true
-                            } else {
-                                bottomDialog = BottomDialog().apply {
-                                    supportFragmentManager.beginTransaction()
-                                        .add(R.id.fragment_container, this)
-                                        .commit()
-                                }
-                                true
+                        ACTION_START -> with(supportFragmentManager) {
+                            val fragment = (bottomFragment
+                                ?: findFragmentByTag(BottomFragment.TAG) as? BottomFragment
+                                ?: BottomFragment()).also { bottomFragment = it }
+
+                            if (fragment.isAdded) return fragment.extendBy(event.movedBy) else {
+                                beginTransaction().replace(
+                                    R.id.fragment_container,
+                                    fragment,
+                                    BottomFragment.TAG
+                                ).commit()
+                                return true
                             }
                         }
                         ACTION_MOVE -> {
-                            return bottomDialog?.extendBy(event.movedBy) == true
+                            return bottomFragment?.extendBy(event.movedBy) == true
                         }
                         ACTION_END -> {
                             val showByPosition = event.movedBy > (screenHeight() * 0.5)
@@ -53,16 +55,16 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
 
                             when {
                                 showByVelocity -> {
-                                    bottomDialog?.extend(event.velocity)
+                                    bottomFragment?.extend(event.velocity)
                                 }
                                 hideByVelocity -> {
-                                    bottomDialog?.collapse(event.velocity)
+                                    bottomFragment?.collapse(event.velocity)
                                 }
                                 showByPosition -> {
-                                    bottomDialog?.extend(event.velocity)
+                                    bottomFragment?.extend(event.velocity)
                                 }
                                 hideByPosition -> {
-                                    bottomDialog?.collapse(event.velocity)
+                                    bottomFragment?.collapse(event.velocity)
                                 }
                             }
                             return true
@@ -71,12 +73,17 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
                 }
                 SwipeableLayout.SwipeEvent.DOWN -> {
                     when (event.action) {
-                        ACTION_START -> {
-                            if (bottomDialog?.isAdded == false) return false
-                            return bottomDialog?.collapseBy(event.movedBy) == true
+                        ACTION_START -> with(supportFragmentManager) {
+
+                            val fragment = (bottomFragment
+                                ?: findFragmentByTag(BottomFragment.TAG) as? BottomFragment
+                                ?: BottomFragment()).also { bottomFragment = it }
+
+                            if (!fragment.isAdded) return false
+                            return fragment.collapseBy(event.movedBy)
                         }
                         ACTION_MOVE -> {
-                            return bottomDialog?.collapseBy(event.movedBy) == true
+                            return bottomFragment?.collapseBy(event.movedBy) == true
                         }
                         ACTION_END -> {
                             val showByPosition = event.movedBy > (screenHeight() * 0.5)
@@ -88,16 +95,31 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
 
                             when {
                                 showByVelocity -> {
-                                    bottomDialog?.extend(event.velocity)
+                                    bottomFragment?.extend(event.velocity)
                                 }
                                 hideByVelocity -> {
-                                    bottomDialog?.collapse(event.velocity)
+                                    bottomFragment?.run {
+                                        collapse(event.velocity) {
+                                            supportFragmentManager
+                                                .beginTransaction()
+                                                .remove(this)
+                                                .commit()
+                                        }
+                                    }
                                 }
                                 showByPosition -> {
-                                    bottomDialog?.extend(event.velocity)
+                                    bottomFragment?.extend(event.velocity)
                                 }
                                 hideByPosition -> {
-                                    bottomDialog?.collapse(event.velocity)
+                                    bottomFragment?.run {
+                                        collapse(event.velocity) {
+                                            supportFragmentManager
+                                                .beginTransaction()
+                                                .remove(this)
+                                                .commit()
+                                        }
+                                    }
+                                    bottomFragment = null
                                 }
                             }
                             return true
@@ -127,7 +149,6 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
             onSwipeListener = this@MainActivity.onSwipeListener
 
         }
-
     }
 
     override fun onItemClick(view: View, position: Int) {

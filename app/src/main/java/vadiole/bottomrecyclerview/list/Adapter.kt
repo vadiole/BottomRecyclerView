@@ -40,18 +40,6 @@ class Adapter(
     private fun getItem(position: Int) = differ.currentList[position]
 
     fun submitList(list: List<Equatable>) = differ.submitList(list.toList())
-//
-//    private val differ: AsyncListDiffer<Equatable> = AsyncListDiffer(this, differCallback)
-
-//    var currentList = mutableListOf<Equatable>()
-//    override fun getItemCount() = currentList.size
-//
-//    private fun getItem(position: Int) = currentList[position]
-//
-//    fun submitList(list: List<Equatable>) {
-//        currentList = list.toMutableList()
-//    }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         when (viewType) {
