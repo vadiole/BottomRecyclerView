@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview.list
+package vadiole.bottomrecyclerview.list
 
 import androidx.recyclerview.widget.ItemTouchHelper
 

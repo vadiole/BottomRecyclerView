@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview.list
+package vadiole.bottomrecyclerview.list
 
 interface ItemTouchHelperAdapter {
     fun onItemMove(fromPosition: Int, toPosition: Int): Boolean

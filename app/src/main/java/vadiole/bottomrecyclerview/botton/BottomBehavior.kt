@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview.botton
+package vadiole.bottomrecyclerview.botton
 
 interface BottomBehavior {
     fun extendBy(dY: Float): Boolean

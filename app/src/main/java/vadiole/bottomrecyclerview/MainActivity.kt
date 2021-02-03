@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview
+package vadiole.bottomrecyclerview
 
 import android.graphics.Point
 import android.os.Build
@@ -13,8 +13,8 @@ import vadiole.SwipeableLayout
 import vadiole.SwipeableLayout.SwipeEvent.Companion.ACTION_END
 import vadiole.SwipeableLayout.SwipeEvent.Companion.ACTION_MOVE
 import vadiole.SwipeableLayout.SwipeEvent.Companion.ACTION_START
-import vadiole.livedatarecyclerview.botton.BottomDialog
-import vadiole.livedatarecyclerview.list.OnItemClickListener
+import vadiole.bottomrecyclerview.botton.BottomDialog
+import vadiole.bottomrecyclerview.list.OnItemClickListener
 
 
 class MainActivity : AppCompatActivity(), OnItemClickListener {

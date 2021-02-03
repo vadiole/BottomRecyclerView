@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview
+package vadiole.bottomrecyclerview
 
 import org.junit.Test
 

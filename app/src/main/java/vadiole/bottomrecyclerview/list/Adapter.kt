@@ -1,8 +1,10 @@
-package vadiole.livedatarecyclerview.list
+package vadiole.bottomrecyclerview.list
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import java.util.*
@@ -13,38 +15,42 @@ class Adapter(
     private val listener: OnItemClickListener,
 ) : RecyclerView.Adapter<ViewHolder>(), ItemTouchHelperAdapter {
 
-//    private val differCallback = object : DiffUtil.ItemCallback<Equatable>() {
-//        override fun areItemsTheSame(old: Equatable, new: Equatable) = when {
-//            old is Item1 && new is Item1 -> old.id == new.id
-//            old is Item2 && new is Item2 -> true
-//            else -> false
-//        }
-//
-//        override fun areContentsTheSame(old: Equatable, new: Equatable) = when {
-//            old is Item1 && new is Item1 -> old == new
-//            old is Item2 && new is Item2 -> old == new
-//            else -> false
-//        }
-//    }
+    private val differCallback = object : DiffUtil.ItemCallback<Equatable>() {
+        override fun areItemsTheSame(old: Equatable, new: Equatable) = when {
+            old is Item1 && new is Item1 -> old.id == new.id
+            old is Item2 && new is Item2 -> true
+            else -> false
+        }
 
-//    private val differ: AsyncListDiffer<Equatable> = AsyncListDiffer(this, differCallback)
-//
-//    override fun getItemCount() = differ.currentList.size
-//
-//    private fun getItem(position: Int) = differ.currentList[position]
-//
-//    fun submitList(list: List<Equatable>) = differ.submitList(list.toList())
-
-//    private val differ: AsyncListDiffer<Equatable> = AsyncListDiffer(this, differCallback)
-
-    var currentList = mutableListOf<Equatable>()
-    override fun getItemCount() = currentList.size
-
-    private fun getItem(position: Int) = currentList[position]
-
-    fun submitList(list: List<Equatable>) {
-        currentList = list.toMutableList()
+        override fun areContentsTheSame(old: Equatable, new: Equatable) = when {
+            old is Item1 && new is Item1 -> old == new
+            old is Item2 && new is Item2 -> old == new
+            else -> false
+        }
     }
+
+    //
+    private val differ: AsyncListDiffer<Equatable> = AsyncListDiffer(this, differCallback)
+
+    private val currentList: List<Equatable>
+        get() = differ.currentList
+
+    override fun getItemCount() = differ.currentList.size
+
+    private fun getItem(position: Int) = differ.currentList[position]
+
+    fun submitList(list: List<Equatable>) = differ.submitList(list.toList())
+//
+//    private val differ: AsyncListDiffer<Equatable> = AsyncListDiffer(this, differCallback)
+
+//    var currentList = mutableListOf<Equatable>()
+//    override fun getItemCount() = currentList.size
+//
+//    private fun getItem(position: Int) = currentList[position]
+//
+//    fun submitList(list: List<Equatable>) {
+//        currentList = list.toMutableList()
+//    }
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
@@ -70,6 +76,10 @@ class Adapter(
         else -> throw NotImplementedError()
     }
 
+    override fun getItemId(position: Int): Long {
+        return (currentList[position] as? Item1)?.id?.toLong()
+            ?: (currentList[position] as? Item2)!!.id.toLong()
+    }
 
     companion object {
         const val TYPE_1 = 1
@@ -77,9 +87,8 @@ class Adapter(
     }
 
     override fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {
-//        val mItems = differ.currentList.toMutableList()
+        val mItems = currentList.toMutableList()
 
-        val mItems = currentList
         if (fromPosition < toPosition) {
             for (i in fromPosition until toPosition) {
                 Collections.swap(mItems, i, i + 1)
@@ -90,7 +99,7 @@ class Adapter(
             }
         }
         submitList(mItems)
-        notifyItemMoved(fromPosition, toPosition)
+//        notifyItemMoved(fromPosition, toPosition)
         return true
     }
 

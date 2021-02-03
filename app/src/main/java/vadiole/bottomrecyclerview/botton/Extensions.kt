@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview.botton
+package vadiole.bottomrecyclerview.botton
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter

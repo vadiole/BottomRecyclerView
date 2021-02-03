@@ -1,9 +1,9 @@
-package vadiole.livedatarecyclerview.list
+package vadiole.bottomrecyclerview.list
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import vadiole.livedatarecyclerview.R
+import vadiole.bottomrecyclerview.R
 
 class ItemHolder2(inflater: LayoutInflater, parent: ViewGroup) :
     RecyclerView.ViewHolder(inflater.inflate(R.layout.item2, parent, false)),

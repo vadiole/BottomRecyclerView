@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview.list
+package vadiole.bottomrecyclerview.list
 
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -8,7 +8,7 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import vadiole.livedatarecyclerview.R
+import vadiole.bottomrecyclerview.R
 
 class ItemHolder1(inflater: LayoutInflater, parent: ViewGroup) :
     RecyclerView.ViewHolder(inflater.inflate(R.layout.item1, parent, false)),

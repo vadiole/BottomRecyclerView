@@ -77,7 +77,7 @@ class SwipeableLayout @JvmOverloads constructor(
                                 currentAction = ACTION_MOVE
                                 currentDirection = direction
                                 true
-                            } else false
+                            } else false.also { Log.i("SWIPE", "onInterceptTouchEvent: false") }
                         }
                     } else {
                         if (abs(dY) > touchSlop) {
@@ -87,7 +87,8 @@ class SwipeableLayout @JvmOverloads constructor(
                                 currentAction = ACTION_MOVE
                                 currentDirection = direction
                                 true
-                            } else false
+                            } else false.also { Log.i("SWIPE", "onInterceptTouchEvent: false") }
+
                         }
                     }
                 }

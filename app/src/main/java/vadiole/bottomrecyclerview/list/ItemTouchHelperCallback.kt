@@ -1,10 +1,11 @@
-package vadiole.livedatarecyclerview.list
+package vadiole.bottomrecyclerview.list
 
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import vadiole.livedatarecyclerview.list.Adapter.Companion.TYPE_1
-import vadiole.livedatarecyclerview.list.Adapter.Companion.TYPE_2
+import vadiole.bottomrecyclerview.botton.toPx
+import vadiole.bottomrecyclerview.list.Adapter.Companion.TYPE_1
+import vadiole.bottomrecyclerview.list.Adapter.Companion.TYPE_2
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -19,7 +20,6 @@ class ItemTouchHelperCallback(private val adapter: ItemTouchHelperAdapter) : Cal
             makeMovementFlags(0, 0)
         }
     }
-
 
     override fun onMove(recyclerView: RecyclerView, from: ViewHolder, to: ViewHolder): Boolean {
         val fromPosition = from.bindingAdapterPosition
@@ -45,8 +45,9 @@ class ItemTouchHelperCallback(private val adapter: ItemTouchHelperAdapter) : Cal
         msSinceStartScroll: Long
     ): Int {
         val direction = sign(viewSizeOutOfBounds.toDouble()).toInt()
-        return 10 * direction
+        return 10.toPx * direction
     }
+
 
 
     //      0.5 >= x >= 1 (if less than 0.5, it will shake due to constant overlap)

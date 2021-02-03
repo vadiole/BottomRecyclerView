@@ -1,4 +1,4 @@
-package vadiole.livedatarecyclerview.botton
+package vadiole.bottomrecyclerview.botton
 
 import android.os.Bundle
 import android.util.Log
@@ -13,11 +13,11 @@ import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import vadiole.livedatarecyclerview.R
-import vadiole.livedatarecyclerview.ViewModel
-import vadiole.livedatarecyclerview.list.Adapter
-import vadiole.livedatarecyclerview.list.ItemTouchHelperCallback
-import vadiole.livedatarecyclerview.list.OnItemClickListener
+import vadiole.bottomrecyclerview.R
+import vadiole.bottomrecyclerview.ViewModel
+import vadiole.bottomrecyclerview.list.Adapter
+import vadiole.bottomrecyclerview.list.ItemTouchHelperCallback
+import vadiole.bottomrecyclerview.list.OnItemClickListener
 import kotlin.math.abs
 
 class BottomDialog : Fragment(), BottomBehavior, OnItemClickListener {
@@ -62,7 +62,7 @@ class BottomDialog : Fragment(), BottomBehavior, OnItemClickListener {
             viewModel.list.observe(viewLifecycleOwner) { list ->
                 Log.i("Main", "update list")
                 mAdapter?.submitList(list)
-                mAdapter?.notifyDataSetChanged()
+                recycler?.scheduleLayoutAnimation()
             }
         }
     }
