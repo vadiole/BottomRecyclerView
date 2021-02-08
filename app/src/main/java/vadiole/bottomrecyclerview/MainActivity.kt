@@ -5,10 +5,12 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewConfiguration
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.postDelayed
 import vadiole.SwipeableLayout
 import vadiole.SwipeableLayout.SwipeEvent.Companion.ACTION_END
 import vadiole.SwipeableLayout.SwipeEvent.Companion.ACTION_MOVE
@@ -33,16 +35,23 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
                                 ?: findFragmentByTag(BottomFragment.TAG) as? BottomFragment
                                 ?: BottomFragment()).also { bottomFragment = it }
 
-                            if (fragment.isAdded) return fragment.extendBy(event.movedBy) else {
+                            return if (fragment.isAdded) {
+                                if (fragment.isVisible) {
+                                    return fragment.extendBy(
+                                        event.movedBy
+                                    )
+                                } else true
+                            } else {
                                 beginTransaction().replace(
                                     R.id.fragment_container,
                                     fragment,
                                     BottomFragment.TAG
                                 ).commit()
-                                return true
+                                true
                             }
                         }
                         ACTION_MOVE -> {
+                            if (bottomFragment?.isVisible != true) return false
                             return bottomFragment?.extendBy(event.movedBy) == true
                         }
                         ACTION_END -> {
@@ -55,16 +64,44 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
 
                             when {
                                 showByVelocity -> {
-                                    bottomFragment?.extend(event.velocity)
+                                    if (bottomFragment?.isVisible == true) {
+                                        bottomFragment?.extend(event.velocity)
+                                    }
                                 }
                                 hideByVelocity -> {
-                                    bottomFragment?.collapse(event.velocity)
+                                    bottomFragment?.collapse(event.velocity) {
+                                        bottomFragment?.run {
+                                            collapse(event.velocity) {
+                                                if (this.isAdded) {
+                                                    supportFragmentManager
+                                                        .beginTransaction()
+                                                        .remove(this)
+                                                        .commitAllowingStateLoss()
+                                                }
+                                            }
+                                        }
+                                        bottomFragment = null
+                                    }
                                 }
                                 showByPosition -> {
-                                    bottomFragment?.extend(event.velocity)
+                                    if (bottomFragment?.isVisible == true) {
+                                        bottomFragment?.extend(event.velocity)
+                                    }
                                 }
                                 hideByPosition -> {
-                                    bottomFragment?.collapse(event.velocity)
+                                    bottomFragment?.collapse(event.velocity) {
+                                        bottomFragment?.run {
+                                            collapse(event.velocity) {
+                                                if (this.isAdded) {
+                                                    supportFragmentManager
+                                                        .beginTransaction()
+                                                        .remove(this)
+                                                        .commitAllowingStateLoss()
+                                                }
+                                            }
+                                        }
+                                        bottomFragment = null
+                                    }
                                 }
                             }
                             return true
@@ -100,12 +137,15 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
                                 hideByVelocity -> {
                                     bottomFragment?.run {
                                         collapse(event.velocity) {
-                                            supportFragmentManager
-                                                .beginTransaction()
-                                                .remove(this)
-                                                .commit()
+                                            if (this.isAdded) {
+                                                supportFragmentManager
+                                                    .beginTransaction()
+                                                    .remove(this)
+                                                    .commitAllowingStateLoss()
+                                            }
                                         }
                                     }
+                                    bottomFragment = null
                                 }
                                 showByPosition -> {
                                     bottomFragment?.extend(event.velocity)
@@ -113,10 +153,12 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
                                 hideByPosition -> {
                                     bottomFragment?.run {
                                         collapse(event.velocity) {
-                                            supportFragmentManager
-                                                .beginTransaction()
-                                                .remove(this)
-                                                .commit()
+                                            if (this.isAdded) {
+                                                supportFragmentManager
+                                                    .beginTransaction()
+                                                    .remove(this)
+                                                    .commitAllowingStateLoss()
+                                            }
                                         }
                                     }
                                     bottomFragment = null
@@ -135,30 +177,22 @@ class MainActivity : AppCompatActivity(), OnItemClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<TextView>(R.id.toolbar).setOnClickListener {
-//            Toast.makeText(this, "click", Toast.LENGTH_SHORT).show()
-//            BottomDialog()
-//            supportFragmentManager
-//                .beginTransaction()
-//                .replace(R.id.fragment_container, BottomDialog())
-//                .commit()
-        }
-
-
         findViewById<SwipeableLayout>(R.id.root).apply {
             onSwipeListener = this@MainActivity.onSwipeListener
 
+            postDelayed(1000) {
+                viewModel.list.observe(this@MainActivity) {
+
+                }
+            }
         }
+
+
     }
 
     override fun onItemClick(view: View, position: Int) {
         Toast.makeText(this, "onItemClick: $position", Toast.LENGTH_SHORT).show()
     }
-
-
-    var actionDownX = -1f
-    var actionDownY = -1f
-    var isDragging = false
 
 
     fun screenHeight() = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {

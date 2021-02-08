@@ -1,8 +1,6 @@
 package vadiole.bottomrecyclerview.list
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -11,7 +9,6 @@ import java.util.*
 
 
 class Adapter(
-    private val lifecycleOwner: LifecycleOwner,
     private val listener: OnItemClickListener,
 ) : RecyclerView.Adapter<ViewHolder>(), ItemTouchHelperAdapter {
 
@@ -43,15 +40,15 @@ class Adapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         when (viewType) {
-            TYPE_1 -> ItemHolder1(LayoutInflater.from(parent.context), parent)
-            TYPE_2 -> ItemHolder2(LayoutInflater.from(parent.context), parent)
+            TYPE_1 -> ItemHolder1(parent)
+            TYPE_2 -> ItemHolder2(parent)
             else -> throw NotImplementedError()
         }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
         when (holder.itemViewType) {
-            TYPE_1 -> (holder as ItemHolder1).bind(item as Item1, lifecycleOwner, listener)
+            TYPE_1 -> (holder as ItemHolder1).bind(item as Item1, listener)
             TYPE_2 -> (holder as ItemHolder2).bind(listener)
             else -> throw NotImplementedError()
         }

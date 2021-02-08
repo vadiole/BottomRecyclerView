@@ -36,16 +36,12 @@ class SwipeableLayout @JvmOverloads constructor(
 
     private var currentAction = ACTION_NONE
     private var currentDirection = -1
-    private var isSwiping = false
     private var startX = -1f
     private var startY = -1f
 
 
     @SuppressLint("Recycle")
     override fun onInterceptTouchEvent(event: MotionEvent?): Boolean {
-        Log.d("Swipe", "onInterceptTouchEvent")
-
-
         when (event?.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
 
@@ -77,7 +73,7 @@ class SwipeableLayout @JvmOverloads constructor(
                                 currentAction = ACTION_MOVE
                                 currentDirection = direction
                                 true
-                            } else false.also { Log.i("SWIPE", "onInterceptTouchEvent: false") }
+                            } else false
                         }
                     } else {
                         if (abs(dY) > touchSlop) {
@@ -87,7 +83,7 @@ class SwipeableLayout @JvmOverloads constructor(
                                 currentAction = ACTION_MOVE
                                 currentDirection = direction
                                 true
-                            } else false.also { Log.i("SWIPE", "onInterceptTouchEvent: false") }
+                            } else false
 
                         }
                     }
@@ -107,10 +103,6 @@ class SwipeableLayout @JvmOverloads constructor(
         if (onSwipeListener == null) return super.onTouchEvent(event)
 
 
-        Log.d(
-            "Swipe",
-            "onTouchEvent, swipe action = $currentAction, direction = ${currentDirection}, touch action = ${event.actionMasked}"
-        )
         val movedBy = when (currentDirection) {
             UP -> startY - event.rawY
             DOWN -> event.rawY - startY
@@ -121,17 +113,19 @@ class SwipeableLayout @JvmOverloads constructor(
 
         when (event.actionMasked) {
             MotionEvent.ACTION_MOVE -> {
-                Log.d("Swipe", "onTouchEvent: ACTION_MOVE")
-                velocityTracker?.addMovement(event)
-
                 val swipeEvent = if (movedBy < 0f) {
                     SwipeEvent(ACTION_MOVE, currentDirection, 0f, null)
                 } else {
                     SwipeEvent(ACTION_MOVE, currentDirection, movedBy, null)
                 }
-                Log.d("Swipe", "send move action")
-                onSwipeListener?.onSwipe(swipeEvent)
+                Log.d("SwipeLayout", "move: $swipeEvent")
+                if (onSwipeListener?.onSwipe(swipeEvent) == false) {
+                    velocityTracker?.clear()
+                    startX = event.rawX
+                    startY = event.rawY
+                }
 
+                velocityTracker?.addMovement(event)
                 return true
             }
 

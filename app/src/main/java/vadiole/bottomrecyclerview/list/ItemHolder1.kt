@@ -2,36 +2,74 @@ package vadiole.bottomrecyclerview.list
 
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
+import androidx.asynclayoutinflater.view.AsyncLayoutInflater
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import vadiole.bottomrecyclerview.R
+import vadiole.bottomrecyclerview.botton.removeSelf
 
-class ItemHolder1(inflater: LayoutInflater, parent: ViewGroup) :
-    RecyclerView.ViewHolder(inflater.inflate(R.layout.item1, parent, false)),
+class ItemHolder1(parent: ViewGroup) :
+    RecyclerView.ViewHolder(
+        LayoutInflater.from(parent.context).inflate(R.layout.item_stub, parent, false)
+    ),
     ItemTouchHelperViewHolder {
 
-    private var titleView: TextView
-    private var timeView: TextView
+    private var isInflated = false
+    private var titleView: TextView? = null
+    private var timeView: TextView? = null
+
+    private var titleValue: String? = null
+    private var timeValue: String? = null
 
     init {
-        with(itemView) {
-            titleView = findViewById(R.id.title)
-            timeView = findViewById(R.id.time)
+        val context = parent.context
+        val asyncInflater = AsyncLayoutInflater(context)
+        val callback = AsyncLayoutInflater.OnInflateFinishedListener { view, resid, viewGroup ->
+
+            with(itemView) {
+                handler?.post {
+                    viewGroup?.addView(view)
+                    findViewById<View>(R.id.stub).removeSelf()
+                    findViewById<ViewGroup>(R.id.root_async).clipToOutline = true
+                    titleView = findViewById(R.id.title)
+                    timeView = findViewById(R.id.time)
+                    isInflated = true
+
+                    titleValue?.let { titleView?.text = it }
+                    timeValue?.let { timeView?.text = it }
+                } ?: run {
+                    viewGroup?.addView(view)
+                    findViewById<View>(R.id.stub).removeSelf()
+                    findViewById<ViewGroup>(R.id.root_async).clipToOutline = true
+                    titleView = findViewById(R.id.title)
+                    timeView = findViewById(R.id.time)
+                    isInflated = true
+
+                    titleValue?.let { titleView?.text = it }
+                    timeValue?.let { timeView?.text = it }
+                }
+
+            }
         }
+        asyncInflater.inflate(R.layout.item1, itemView as ViewGroup, callback)
     }
 
-    fun bind(item: Item1, lifecycleOwner: LifecycleOwner, listener: OnItemClickListener) {
+    fun bind(item: Item1, listener: OnItemClickListener) {
         itemView.setOnClickListener { listener.onItemClick(it, bindingAdapterPosition) }
         with(item) {
-            titleView.text = title
-//                time.observe(lifecycleOwner) { time ->
-//                    timeView.text = time
-//                }
-            timeView.text = time
+            if (isInflated) {
+                titleView?.text = title
+                timeView?.text = time
+            } else {
+                titleValue = title
+                timeValue = time
+            }
         }
     }
 
@@ -51,6 +89,7 @@ class ItemHolder1(inflater: LayoutInflater, parent: ViewGroup) :
         alpha = lastAlpha
 
         animate()
+            .withLayer()
             .setDuration(100)
             .scaleX(1.1f)
             .scaleY(1.1f)
@@ -73,6 +112,7 @@ class ItemHolder1(inflater: LayoutInflater, parent: ViewGroup) :
         alpha = lastAlpha
 
         animate()
+            .withLayer()
             .setDuration(100)
             .scaleX(1.0f)
             .scaleY(1.0f)

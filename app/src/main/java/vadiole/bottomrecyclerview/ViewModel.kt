@@ -33,6 +33,7 @@ class ViewModel(application: Application, private val state: SavedStateHandle) :
 
 
         for (i in 0..0) {
+//            val newList = List<Equatable>(12) { Item2(it) }
             val newList = List<Equatable>(12) { Item1(it, "Item $it", "time") }
             delay(500)
             mutableList.addAll(0, newList)
